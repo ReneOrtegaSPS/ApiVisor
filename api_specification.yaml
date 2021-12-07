@@ -1,0 +1,1268 @@
+openapi: 3.0.0
+info:
+  title: apiVisorDocumentos
+  description: >-
+    This api allows the user to create, read, update and delete files inside a bucket in s3.
+
+
+    # Overview
+
+    This documentation is made following the OpenApi 3.0 specification.
+
+
+    # Error Codes
+
+
+    - 400: Bad request.
+
+    - 401: Unauthorized.
+
+    - 404: Not found.
+
+    - 500: Internal Error.
+  contact: {}
+  version: "1.0"
+servers:
+  - url: http://example.com
+    variables: {}
+paths:
+  /files/_presigned_url/:
+    post:
+      tags:
+        - Files >6mb
+      summary: Obtain SignedURL
+      description: >-
+        This is the first step to upload a file bigger than 6mb. It's needed to specify the contract number aswell as the filename in the request body.
+
+
+        The next step is to make a request directly to the s3 api to upload the file.
+
+
+        The endpoint its going to be the "url" in the json response, and the payload it's going to have the next structure (all the information required it's in the json response):
+
+        ```json
+
+        { "key": "filename.jpg", "AWSAccessKeyId": "XXXXXXXXXX", "x-amz-security-token": "XXXXXXXXXX", "policy": "XXXXXXXXXX", "signature": "XXXXXXXXXX", "file": "file"
+
+        }
+
+        ``` 
+
+        The file has to be a **txt** or **json** file following this structure:
+
+        ```json
+
+        { "filename": "filename.jpg", "content-type": "image/jpeg", "encoded_file": "iVBORw0KGgoAAAANSUhEUgAAD..."
+
+        }
+
+        ```
+      operationId: GetPreSignedURL
+      requestBody:
+        content:
+          application/json:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/presigned_url_body"
+        required: true
+      responses:
+        "200":
+          description: OK
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 16:59:19 GMT
+                  example: Thu, 04 Nov 2021 16:59:19 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "2197"
+                  example: "2197"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: close
+                  example: close
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISen6i9-vHcEPgw=
+                  example: ISen6i9-vHcEPgw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/presigned_url_response"
+              example:
+                url: https://sps-api-visordocumentos.s3.amazonaws.com/
+                fields:
+                  key: 1/some/random/img.txt
+                  AWSAccessKeyId: XXXXXXXXXXXXXXX
+                  x-amz-security-token: XXXXXXXXXXXXXXXXXXXXXX..../
+                  policy: XXXXXXXXXXXXXXXXXXXXXXXXX
+                  signature: XXXXXXXXXXXXXXXXXXXXXX
+        "400":
+          description: Bad Request
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:08:55 GMT
+                  example: Thu, 04 Nov 2021 17:08:55 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "48"
+                  example: "48"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISgCRhpCPHcEPYg=
+                  example: ISgCRhpCPHcEPYg=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: "'filename' parameter is missing."
+      deprecated: false
+  /files/_create:
+    post:
+      tags:
+        - Files <6mb
+      summary: Upload a file
+      description: Upload a file.
+      operationId: UploadFile
+      requestBody:
+        content:
+          multipart/form-data:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/upload_body_attachment"
+          application/json:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/upload_body_file_encoded"
+        required: true
+      responses:
+        "201":
+          description: OK
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:28:05 GMT
+                  example: Thu, 04 Nov 2021 17:28:05 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "30"
+                  example: "30"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISi1uiyxvHcEPbw=
+                  example: ISi1uiyxvHcEPbw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/message_response"
+              example:
+                message: File created.
+        "400":
+          description: Bad Request
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:41:58 GMT
+                  example: Thu, 04 Nov 2021 17:41:58 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "48"
+                  example: "48"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISk4GjuVPHcEPkw=
+                  example: ISk4GjuVPHcEPkw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: "'filename' parameter is missing."
+      deprecated: false
+  /files/_update:
+    put:
+      tags:
+        - Files <6mb
+      summary: Update a file
+      description: Update a file. It will throw an error if the file doesn't exist.
+      operationId: UpdateFile
+      requestBody:
+        content:
+          multipart/form-data:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/upload_body_attachment"
+          application/json:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/upload_body_file_encoded"
+        required: true
+      responses:
+        "201":
+          description: OK
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:28:05 GMT
+                  example: Thu, 04 Nov 2021 17:28:05 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "30"
+                  example: "30"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISi1uiyxvHcEPbw=
+                  example: ISi1uiyxvHcEPbw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/message_response"
+              example:
+                message: File updated.
+        "400":
+          description: Bad Request
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:41:58 GMT
+                  example: Thu, 04 Nov 2021 17:41:58 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "48"
+                  example: "48"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISk4GjuVPHcEPkw=
+                  example: ISk4GjuVPHcEPkw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: "'filename' parameter is missing."
+        "404":
+          description: Not Found
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:47:36 GMT
+                  example: Thu, 04 Nov 2021 17:47:36 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "33"
+                  example: "33"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISls0jFFvHcEPBw=
+                  example: ISls0jFFvHcEPBw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: There are no files with that filename and contract number.
+      deprecated: false
+  /files/_get:
+    post:
+      tags:
+        - Files
+      summary: Get File
+      description: >-
+        Get a file according to the contract number and filename. It can also retrieve specific versions of that file.
+
+
+        If the file is bigger than 6mb, it will instead respond with a presigned url and then you will need to make a get request to that endpoint.
+      operationId: GetFile
+      requestBody:
+        content:
+          application/json:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/get_delete_file_body"
+        required: true
+      responses:
+        "200":
+          description: OK
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:56:02 GMT
+                  example: Thu, 04 Nov 2021 17:56:02 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "35269"
+                  example: "35269"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: close
+                  example: close
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISm75iGCvHcEJKw=
+                  example: ISm75iGCvHcEJKw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/get_file_response"
+                  - $ref: "#/components/schemas/get_file_6mb_response"
+        "400":
+          description: Bad Request
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:59:58 GMT
+                  example: Thu, 04 Nov 2021 17:59:58 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "37"
+                  example: "37"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISngwgaevHcEJRA=
+                  example: ISngwgaevHcEJRA=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: File is in Glacier Storage, you must restore it first.
+        "404":
+          description: Not Found
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:59:58 GMT
+                  example: Thu, 04 Nov 2021 17:59:58 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "37"
+                  example: "37"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISngwgaevHcEJRA=
+                  example: ISngwgaevHcEJRA=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: File not found.
+      deprecated: false
+  /files/_dismiss:
+    patch:
+      tags:
+        - Files
+      summary: Dismisses the file
+      description: Dismiss the file, sending it to Glacier Storage. If version_id is not provided, all versions will be moved to glacier.
+      operationId: MoveFileToGlacierConfig
+      requestBody:
+        content:
+          application/json:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/dismiss_file"
+        required: true
+      responses:
+        "200":
+          description: OK
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:56:02 GMT
+                  example: Thu, 04 Nov 2021 17:56:02 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "35269"
+                  example: "35269"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: close
+                  example: close
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/message_response"
+              example:
+                message: File dismissed succesfully.
+        "400":
+          description: Bad Request
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:56:02 GMT
+                  example: Thu, 04 Nov 2021 17:56:02 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "35269"
+                  example: "35269"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: close
+                  example: close
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: File has already been dismissed.
+        "404":
+          description: Not Found
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 17:59:58 GMT
+                  example: Thu, 04 Nov 2021 17:59:58 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "37"
+                  example: "37"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: File not found.
+      deprecated: false
+  /files/_delete:
+    post:
+      tags:
+        - Files
+      summary: Delete a file
+      description: Delete a file. It can also delete a specific version of the file.
+      operationId: DeleteFile
+      requestBody:
+        content:
+          application/json:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/get_delete_file_body"
+        required: true
+      responses:
+        "200":
+          description: OK
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 18:15:21 GMT
+                  example: Thu, 04 Nov 2021 18:15:21 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "33"
+                  example: "33"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISpw-g1QvHcEJNw=
+                  example: ISpw-g1QvHcEJNw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/message_response"
+              example:
+                message: File deleted.
+        "400":
+          description: Bad Request
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 18:15:43 GMT
+                  example: Thu, 04 Nov 2021 18:15:43 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "43"
+                  example: "43"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISp0ghy3vHcEJCQ=
+                  example: ISp0ghy3vHcEJCQ=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: Invalid id version.
+        "404":
+          description: Not Found.
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 18:15:43 GMT
+                  example: Thu, 04 Nov 2021 18:15:43 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "43"
+                  example: "43"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISp0ghy3vHcEJCQ=
+                  example: ISp0ghy3vHcEJCQ=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: File not found.
+      deprecated: false
+  /files/_list:
+    post:
+      tags:
+        - Files list
+      summary: Get list of filenames
+      description: Get all the filenames of the contract number.
+      operationId: GetFilenamesOfContract
+      requestBody:
+        content:
+          application/json:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/get_filenames_body"
+        required: true
+      responses:
+        "200":
+          description: OK
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 18:21:57 GMT
+                  example: Thu, 04 Nov 2021 18:21:57 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "612"
+                  example: "612"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISquzgXnvHcEP6g=
+                  example: ISquzgXnvHcEP6g=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/get_filenames_response"
+        "404":
+          description: Not Found
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 18:21:57 GMT
+                  example: Thu, 04 Nov 2021 18:21:57 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "612"
+                  example: "612"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISquzgXnvHcEP6g=
+                  example: ISquzgXnvHcEP6g=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: "Contract Number not found."
+      deprecated: false
+  /files/_list_versions:
+    post:
+      tags:
+        - Files list
+      summary: Get all the versions of a file
+      description: Get all the versions of a file
+      operationId: GetVersionsFile
+      requestBody:
+        content:
+          application/json:
+            encoding: {}
+            schema:
+              $ref: "#/components/schemas/get_file_versions_body"
+      responses:
+        "200":
+          description: OK
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 18:17:34 GMT
+                  example: Thu, 04 Nov 2021 18:17:34 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "2103"
+                  example: "2103"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISqFpiwMPHcEPuA=
+                  example: ISqFpiwMPHcEPuA=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/get_file_versions_response"
+        "400":
+          description: Bad Request
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 18:18:55 GMT
+                  example: Thu, 04 Nov 2021 18:18:55 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "48"
+                  example: "48"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISqSZjMPvHcEPNw=
+                  example: ISqSZjMPvHcEPNw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: "'filename' parameter is missing."
+        "404":
+          description: Not Found
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 18:18:55 GMT
+                  example: Thu, 04 Nov 2021 18:18:55 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "48"
+                  example: "48"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISqSZjMPvHcEPNw=
+                  example: ISqSZjMPvHcEPNw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: "Filename not found."
+      deprecated: false
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    message_response:
+      title: MessageResponse
+      required:
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: File created.
+    error_4xx:
+      title: Error400
+      required:
+        - error
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: \'filename\' parameter is missing
+    presigned_url_body:
+      title: PreSignedURLBody
+      required:
+        - contract_number
+        - filename
+      type: object
+      properties:
+        contract_number:
+          type: string
+        filename:
+          type: string
+      example:
+        contract_number: kafheu1234!
+        filename: INE
+    presigned_url_response:
+      title: PreSignedURLResponse
+      required:
+        - url
+        - field
+      properties:
+        url:
+          type: string
+        fields:
+          $ref: "#/components/schemas/presigned_url_fields"
+      example:
+        url: https://sps-api-visordocumentos.s3.amazonaws.com/
+        fields:
+          key: 1/some/random/img.txt
+          AWSAccessKeyId: XXXXXXXXXXXXXXX
+          x-amz-security-token: XXXXXXXXXXXXXXXXXXXXXX..../
+          policy: XXXXXXXXXXXXXXXXXXXXXXXXX
+          signature: XXXXXXXXXXXXXXXXXXXXXX
+    presigned_url_fields:
+      title: PreSignedURLFields
+      required:
+        - key
+        - AWSAccessKeyId
+        - x-amz-security-token
+        - policy
+        - signature
+      properties:
+        key:
+          type: string
+        AWSAccessKeyId:
+          type: string
+        x-amz-security-token:
+          type: string
+        policy:
+          type: string
+        signature:
+          type: string
+    upload_body_attachment:
+      title: UploadBodyWithAttachment
+      required:
+        - contract_number
+        - file
+      type: object
+      properties:
+        file:
+          type: string
+          format: bytes
+        contract_number:
+          type: string
+      example:
+        contract_number: a2fiq
+        file: xjhnu2iq!
+    upload_body_file_encoded:
+      title: UploadBodyWithFileEncoded
+      required:
+        - contract_number
+        - filename
+        - file
+        - content_type
+      type: object
+      properties:
+        file:
+          type: string
+          format: bytes
+        contract_number:
+          type: string
+        content_type:
+          type: string
+        filename:
+          type: string
+      example:
+        filename: filename.jpg
+        contract_number: a2fiq
+        file: 3Hs2dD2MnZ6xrj2bOiexk7PVPVcezZ0PYydnqnquPZs6L7GTs9Y9Zx7NnQ9nJ2eqeq4zZ0PZydvqnquL...
+    get_delete_file_body:
+      title: Get/DeleteFileBody
+      required:
+        - contract_number
+        - filename
+      type: object
+      properties:
+        contract_number:
+          type: string
+        filename:
+          type: string
+        version_id:
+          type: string
+      example:
+        contract_number: uhfsj1
+        filename: filename
+    get_file_response:
+      title: GetFileResponse
+      required:
+        - content_type
+        - filename
+        - encoded_file
+      type: object
+      properties:
+        content_type:
+          type: string
+        filename:
+          type: string
+        encoded_file:
+          type: string
+      example:
+        content_type: image/jpeg
+        filename: filename.jpg
+        encoded_file: /9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAA0NDQ0ODQ4QEA4UFhMWFB4bGRkbHi0gIiAiIC1EKjIqKjIqRDAAAAAAH/9k=..
+    get_file_6mb_response:
+      title: GetFile6MbResponse
+      required:
+        - presigned_url
+      type: object
+      properties:
+        presigned_url:
+          type: string
+      example:
+        presigned_url: https://xxxx.s3.amazonaws.com/contract/filename.txt?AWSAccessKeyId=XXXX&Signature=XXXX&x-amz-security-token=XXXX&Expires=XXXX
+    dismiss_file:
+      title: DismissFile
+      required:
+        - contract_number
+        - filename
+      type: object
+      properties:
+        contract_number:
+          type: string
+        filename:
+          type: string
+        version_id:
+          type: string
+      example:
+        contract_number: aflkh12
+        filename: filename
+        version_id: "20211203_173028"
+    get_file_versions_body:
+      title: GetFileVersionsBody
+      required:
+        - contract_number
+        - filename
+      type: object
+      properties:
+        contract_number:
+          type: string
+        filename:
+          type: string
+      example:
+        contract_number: uhfsj1
+        filename: filename.jpg
+    get_file_versions_response:
+      title: GetFileVersionsResponse
+      required:
+        - versions
+      type: object
+      properties:
+        versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/file_versions"
+      example:
+        versions:
+          - version_id: KjeIhnMBnf6hXmgd8s9yWYE8Shhq8kJ4
+            last_modified: 2021/11/04 17:10
+            is_latest: true
+            size: 17196327
+            storage_class: STANDARD
+          - version_id: DyJ8c85C8jKW6UFaEXjNAMBKheqnfzcp
+            last_modified: 2021/11/03 01:01
+            is_latest: false
+            size: 28588
+            storage_class: STANDARD
+          - version_id: .XXu36jSXfwx9wKaMsBi_vJmOWkafHFL
+            last_modified: 2021/11/03 01:00
+            is_latest: false
+            size: 319172
+            storage_class: STANDARD
+    file_versions:
+      title: FileVersions
+      required:
+        - version_id
+        - last_modified
+        - is_latest
+        - size
+        - storage_class
+      type: object
+      properties:
+        version_id:
+          type: string
+        last_modified:
+          type: string
+        is_latest:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        storage_class:
+          type: string
+      example:
+        version_id: KjeIhnMBnf6hXmgd8s9yWYE8Shhq8kJ4
+        last_modified: 2021/11/04 17:10
+        is_latest: true
+        size: 17196327
+        storage_class: STANDARD
+    get_filenames_body:
+      title: GetFilenamesBody
+      required:
+        - contract_number
+      type: object
+      properties:
+        contract_number:
+          type: string
+      example:
+        contract_number: ufhs2
+    get_filenames_response:
+      title: GetFilenamesResponse
+      required:
+        - filename_items
+      type: object
+      properties:
+        filename_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/filename_item"
+      example:
+        filename_items:
+          - contract_number: sjfu1
+            filename: filename1
+            last_modified: 2021/11/04 17:10
+            size: 17196327
+            storage_class: STANDARD
+          - contract_number: uafsp1
+            filename: filename2
+            last_modified: 2021/11/03 01:01
+            size: 28588
+            storage_class: STANDARD
+          - contract_number: lfj21
+            filename: filename3
+            last_modified: 2021/11/03 01:00
+            size: 319172
+            storage_class: STANDARD
+    filename_item:
+      title: FilenameItem
+      required:
+        - contract_number
+        - filename
+        - last_modified
+        - size
+        - storage_class
+      properties:
+        contract_number:
+          type: string
+        filename:
+          type: string
+        last_modified:
+          type: string
+        size:
+          type: integer
+          format: int32
+        storage_class:
+          type: string
+      example:
+        contract_number: Kjeuhav2
+        filename: filename
+        last_modified: 2021/11/04 17:10
+        size: 17196327
+        storage_class: STANDARD
+security:
+  - bearerAuth: []
+tags:
+  - name: Files >6mb
+    description: "If the file is bigger than 6mb, you'll need to follow the next two steps:\n - Make a request to /files/_presigned_url endpoint\n - With the information of the previous response, make a post request"
+  - name: Files <6mb
+    description: Create and update files less than 6mb
+  - name: Files
+    description: Get, Update and Delete Files
+  - name: Files list
+    description: Get list of filenames

@@ -1,0 +1,558 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  visor
+
+  Sample SAM Template for visor
+
+Parameters:
+  AppName:
+    Description: Name of Application
+    Type: String
+    Default: sam-visor-documentos
+
+Resources:
+  # API Gateway HTTP API
+  HttpApi:
+    Type: "AWS::ApiGatewayV2::Api"
+    Properties:
+      Name: !Ref AppName
+      Description: API for the application "VisorDocumentos"
+      ProtocolType: HTTP
+
+  # -------------------- ROUTES --------------------
+  # /files/_create
+  CreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "POST /files/_create"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref CreateIntegration
+  # /files/_delete
+  DeleteRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "POST /files/_delete"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref DeleteIntegration
+  # /files/_dismiss
+  DismissRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "PATCH /files/_dismiss"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref DismissIntegration
+  # /files/_get
+  GetRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "POST /files/_get"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref GetIntegration
+  # /files/_list
+  ListRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "POST /files/_list"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref ListIntegration
+  # /files/_list_versions
+  ListVersionsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "POST /files/_list_versions"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref ListVersionsIntegration
+  # /files/_presigned_url
+  PresignedUrlRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "POST /files/_presigned_url"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref PresignedUrlIntegration
+  # /files/_update
+  UpdateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "PUT /files/_update"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref UpdateIntegration
+
+  # -------------------- INTEGRATION --------------------
+  # Integrate _create
+  CreateIntegration:
+    Type: "AWS::ApiGatewayV2::Integration"
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${CreateFunction}/invocations
+  # Integrate _delete
+  DeleteIntegration:
+    Type: "AWS::ApiGatewayV2::Integration"
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${DeleteFunction}/invocations
+  # Integrate _dismiss
+  DismissIntegration:
+    Type: "AWS::ApiGatewayV2::Integration"
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${DismissFunction}/invocations
+  # Integrate _get
+  GetIntegration:
+    Type: "AWS::ApiGatewayV2::Integration"
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${GetFunction}/invocations
+  # Integrate _list
+  ListIntegration:
+    Type: "AWS::ApiGatewayV2::Integration"
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ListFunction}/invocations
+  # Integrate _list_versions
+  ListVersionsIntegration:
+    Type: "AWS::ApiGatewayV2::Integration"
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ListVersionsFunction}/invocations
+  # Integrate _presigned_url
+  PresignedUrlIntegration:
+    Type: "AWS::ApiGatewayV2::Integration"
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${PresignedUrlFunction}/invocations
+  # Integrate _update
+  UpdateIntegration:
+    Type: "AWS::ApiGatewayV2::Integration"
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${UpdateFunction}/invocations
+
+  # -------------------- STAGE --------------------
+  # Default Stage
+  DefaultStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: $default
+      AutoDeploy: true
+
+  # -------------------- LAMBDA FUNCTIONS --------------------
+  # Function _create
+  CreateFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/create/
+      Runtime: python3.8
+      MemorySize: 256
+      Timeout: 15
+      FunctionName: !Sub "${AppName}-create"
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Role: !GetAtt LambdaDefaultRole.Arn
+      Environment:
+        Variables:
+          BUCKET: !Ref S3Bucket
+  # Function _delete
+  DeleteFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/delete/
+      Runtime: python3.8
+      MemorySize: 128
+      Timeout: 5
+      FunctionName: !Sub "${AppName}-delete"
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Role: !GetAtt LambdaDefaultRole.Arn
+      Environment:
+        Variables:
+          BUCKET: !Ref S3Bucket
+  # Function _dismiss
+  DismissFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/dismiss/
+      Runtime: python3.8
+      MemorySize: 256
+      Timeout: 10
+      FunctionName: !Sub "${AppName}-dismiss"
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Role: !GetAtt LambdaDefaultRole.Arn
+      Environment:
+        Variables:
+          BUCKET: !Ref S3Bucket
+  # Function _get
+  GetFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/get/
+      Runtime: python3.8
+      MemorySize: 256
+      Timeout: 15
+      FunctionName: !Sub "${AppName}-get"
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Role: !GetAtt LambdaDefaultRole.Arn
+      Environment:
+        Variables:
+          BUCKET: !Ref S3Bucket
+  # Function _list
+  ListFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/list/
+      Runtime: python3.8
+      MemorySize: 128
+      Timeout: 15
+      FunctionName: !Sub "${AppName}-list"
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Role: !GetAtt LambdaDefaultRole.Arn
+      Environment:
+        Variables:
+          BUCKET: !Ref S3Bucket
+  # Function _list_versions
+  ListVersionsFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/list_versions/
+      Runtime: python3.8
+      MemorySize: 128
+      Timeout: 5
+      FunctionName: !Sub "${AppName}-list-versions"
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Role: !GetAtt LambdaDefaultRole.Arn
+      Environment:
+        Variables:
+          BUCKET: !Ref S3Bucket
+  # Function _presigned_url
+  PresignedUrlFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/presigned_url/
+      Runtime: python3.8
+      MemorySize: 128
+      Timeout: 5
+      FunctionName: !Sub "${AppName}-presigned-url"
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Role: !GetAtt LambdaDefaultRole.Arn
+      Environment:
+        Variables:
+          BUCKET: !Ref S3Bucket
+          BUCKET_TEMP: !Ref S3TempBucket
+          MAX_MB_SIZE_ALLOWED: 100 # MB
+  # Function _update
+  UpdateFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/update/
+      Runtime: python3.8
+      MemorySize: 256
+      Timeout: 15
+      FunctionName: !Sub "${AppName}-update"
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Role: !GetAtt LambdaDefaultRole.Arn
+      Environment:
+        Variables:
+          BUCKET: !Ref S3Bucket
+  # FileVerifier
+  FileVerifierFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/file_verifier/
+      Runtime: python3.8
+      MemorySize: 256
+      Timeout: 15
+      FunctionName: !Sub "${AppName}-file-verifier"
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref CommonLayer
+      Role: !GetAtt LambdaSNSRole.Arn
+      Environment:
+        Variables:
+          BUCKET: !Sub ${AppName}-bucket
+          TEMP_BUCKET: !Sub ${AppName}-temp-bucket
+          SNS_ARN: !Ref SNSTopic
+
+  # -------------------- LAYERS --------------------
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub ${AppName}-common-layer
+      Description: Commmon functions for all the lambdas
+      ContentUri: layers/common
+      CompatibleRuntimes:
+        - python3.8
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: python3.8
+
+  # -------------------- PERMISSIONS --------------------
+  # Permission granted to AWS API Gateway to invoke functions
+  # Permission to _create
+  CreateFunctionPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref CreateFunction
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
+  # Permission to _delete
+  DeleteFunctionPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref DeleteFunction
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
+  # Permission to _dismiss
+  DismissFunctionPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref DismissFunction
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
+  # Permission to _get
+  GetFunctionPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref GetFunction
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
+  # Permission to _list
+  ListFunctionResourcePermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref ListFunction
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
+  # Permission to _list_versions
+  ListVersionsFunctionPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref ListVersionsFunction
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
+  # Permission to _presigned_url
+  PresignedUrlFunctionPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref PresignedUrlFunction
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
+  # Permission to _update
+  UpdateFunctionPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref UpdateFunction
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
+  # Permission
+  FileVerifierPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref FileVerifierFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::${AppName}-temp-bucket"
+      SourceAccount: !Ref AWS::AccountId
+
+  # -------------------- BUCKET S3 --------------------
+  # Normal Bucket
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AppName}-bucket"
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: AllFiles
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 730
+                StorageClass: GLACIER_IR
+            NoncurrentVersionTransitions:
+              - TransitionInDays: 730
+                StorageClass: GLACIER_IR
+  # Temp Bucket for files >6mb
+  S3TempBucket:
+    Type: AWS::S3::Bucket
+    DependsOn:
+      - FileVerifierPermission
+    Properties:
+      BucketName: !Sub "${AppName}-temp-bucket"
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: RemoveTempFiles
+            Status: Enabled
+            ExpirationInDays: 1
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt FileVerifierFunction.Arn
+
+  # -------------------- SNS --------------------
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AppName}-sns-visor"
+      Subscription:
+        - Endpoint: renefernandoortega@gmail.com
+          Protocol: email
+
+  # -------------------- ROLE --------------------
+  LambdaDefaultRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "${AppName}-visor-lambdas-role"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+  # Role for publishing in Sns
+  LambdaSNSRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Sub "${AppName}-visor-sns-lambdas-role"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonSNSRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+
+  # -------------------- POLICY --------------------
+  S3AccessPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: !Sub "${AppName}-visor-lambdas-policy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "s3:Delete*"
+              - "s3:Write*"
+              - "s3:Read*"
+              - "s3:Put*"
+              - "s3:Get*"
+              - "s3:List*"
+            Resource:
+              - !Sub "arn:aws:s3:::${AppName}-bucket/*"
+              - !Sub "arn:aws:s3:::${AppName}-bucket"
+              - !Sub "arn:aws:s3:::${AppName}-temp-bucket/*"
+              - !Sub "arn:aws:s3:::${AppName}-temp-bucket"
+      Roles:
+        - !Ref LambdaDefaultRole
+        - !Ref LambdaSNSRole
+  SNSPublishPolicy:
+    Type: "AWS::IAM::Policy"
+    Properties:
+      PolicyName: !Sub "${AppName}-visor-sns-publish-policy"
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "sns:Publish"
+            Resource:
+              - !Ref SNSTopic
+      Roles:
+        - !Ref LambdaSNSRole
+
+Outputs:
+  ApiEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
