@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: apiVisorDocumentos
   description: >-
-    This api allows the user to create, read, update and delete files inside a bucket in s3.
+    This api allows the user to create, read, update and delete files from contracts.
 
 
     # Overview
@@ -26,33 +26,77 @@ servers:
   - url: http://example.com
     variables: {}
 paths:
-  /files/_presigned_url/:
+  /health:
+    get:
+      tags:
+        - API health
+      description: Checks if the API is healthy.
+      operationId: APIHealth
+      responses:
+        "200":
+          description: OK
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 16:59:19 GMT
+                  example: Thu, 04 Nov 2021 16:59:19 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "2197"
+                  example: "2197"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: close
+                  example: close
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISen6i9-vHcEPgw=
+                  example: ISen6i9-vHcEPgw=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/message_response"
+              example:
+                message: API is healthy.
+      deprecated: false
+  /files/_presigned_url:
     post:
       tags:
         - Files >6mb
-      summary: Obtain SignedURL
       description: >-
         This is the first step to upload a file bigger than 6mb. It's needed to specify the contract number aswell as the filename in the request body.
 
 
-        The next step is to make a request directly to the s3 api to upload the file.
+        The next step is to make a request directly to the url provided in the response to upload the file.
 
 
-        The endpoint its going to be the "url" in the json response, and the payload it's going to have the next structure (all the information required it's in the json response):
+        The endpoint its going to be the "url" in the JSON response, and it's going to have the next structure (all the information required it's in the JSON response):
 
         ```json
 
-        { "key": "filename.jpg", "AWSAccessKeyId": "XXXXXXXXXX", "x-amz-security-token": "XXXXXXXXXX", "policy": "XXXXXXXXXX", "signature": "XXXXXXXXXX", "file": "file"
+        { "key": "XXXXXXXXX", "AWSAccessKeyId": "XXXXXXXXXX", "x-amz-security-token": "XXXXXXXXXX", "policy": "XXXXXXXXXX", "signature": "XXXXXXXXXX", "file": filename
 
         }
 
         ``` 
 
-        The file has to be a **txt** or **json** file following this structure:
+        The file has to be a **txt** or **JSON** file following this structure:
 
         ```json
 
-        { "filename": "filename.jpg", "content-type": "image/jpeg", "encoded_file": "iVBORw0KGgoAAAANSUhEUgAAD..."
+        { "filename": "filename.jpg", "content-type": "image/jpeg", "file": "iVBORw0KGgoAAAANSUhEUgAAD..."
 
         }
 
@@ -145,14 +189,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/error_4xx"
               example:
-                error: "'filename' parameter is missing."
+                error: "'filename' parameter(s) is/are missing."
       deprecated: false
   /files/_create:
     post:
       tags:
         - Files <6mb
-      summary: Upload a file
-      description: Upload a file.
+      description: Creates a file on the specified contract.
       operationId: UploadFile
       requestBody:
         content:
@@ -239,14 +282,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/error_4xx"
               example:
-                error: "'filename' parameter is missing."
+                error: "'contract_number' parameter(s) is/are missing."
       deprecated: false
   /files/_update:
     put:
       tags:
         - Files <6mb
-      summary: Update a file
-      description: Update a file. It will throw an error if the file doesn't exist.
+      description: Update a file. It will throw a 404 error if the file doesn't exist.
       operationId: UpdateFile
       requestBody:
         content:
@@ -333,7 +375,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error_4xx"
               example:
-                error: "'filename' parameter is missing."
+                error: "'contract_number' parameter(s) is/are missing."
         "404":
           description: Not Found
           headers:
@@ -370,13 +412,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/error_4xx"
               example:
-                error: There are no files with that filename and contract number.
+                error: A filename does not exists in that contract_number
       deprecated: false
   /files/_get:
     post:
       tags:
         - Files
-      summary: Get File
       description: >-
         Get a file according to the contract number and filename. It can also retrieve specific versions of that file.
 
@@ -464,7 +505,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error_4xx"
               example:
-                error: File is in Glacier Storage, you must restore it first.
+                error: "'contract_number' parameter(s) is/are missing."
         "404":
           description: Not Found
           headers:
@@ -507,8 +548,7 @@ paths:
     patch:
       tags:
         - Files
-      summary: Dismisses the file
-      description: Dismiss the file, sending it to Glacier Storage. If version_id is not provided, all versions will be moved to glacier.
+      description: Dismiss the files of the contract number.
       operationId: MoveFileToGlacierConfig
       requestBody:
         content:
@@ -547,7 +587,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/message_response"
               example:
-                message: File dismissed succesfully.
+                message: Files dismissed succesfully.
         "400":
           description: Bad Request
           headers:
@@ -577,7 +617,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error_4xx"
               example:
-                error: File has already been dismissed.
+                error: Files has already been dismissed.
         "404":
           description: Not Found
           headers:
@@ -607,13 +647,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/error_4xx"
               example:
-                error: File not found.
+                error: Contract number not found.
       deprecated: false
   /files/_delete:
     post:
       tags:
         - Files
-      summary: Delete a file
       description: Delete a file. It can also delete a specific version of the file.
       operationId: DeleteFile
       requestBody:
@@ -697,7 +736,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error_4xx"
               example:
-                error: Invalid id version.
+                error: "'contract_number' parameter(s) is/are missing."
         "404":
           description: Not Found.
           headers:
@@ -740,7 +779,6 @@ paths:
     post:
       tags:
         - Files list
-      summary: Get list of filenames
       description: Get all the filenames of the contract number.
       operationId: GetFilenamesOfContract
       requestBody:
@@ -786,6 +824,43 @@ paths:
             text/plain; charset=utf-8:
               schema:
                 $ref: "#/components/schemas/get_filenames_response"
+        "400":
+          description: Bad request
+          headers:
+            Date:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: Thu, 04 Nov 2021 18:21:57 GMT
+                  example: Thu, 04 Nov 2021 18:21:57 GMT
+            Content-Length:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: "612"
+                  example: "612"
+            Connection:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: keep-alive
+                  example: keep-alive
+            Apigw-Requestid:
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    example: ISquzgXnvHcEP6g=
+                  example: ISquzgXnvHcEP6g=
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                $ref: "#/components/schemas/error_4xx"
+              example:
+                error: "'contract_number' parameter(s) is/are missing."
         "404":
           description: Not Found
           headers:
@@ -828,8 +903,7 @@ paths:
     post:
       tags:
         - Files list
-      summary: Get all the versions of a file
-      description: Get all the versions of a file
+      description: List all the versions of a file.
       operationId: GetVersionsFile
       requestBody:
         content:
@@ -837,6 +911,7 @@ paths:
             encoding: {}
             schema:
               $ref: "#/components/schemas/get_file_versions_body"
+        required: true
       responses:
         "200":
           description: OK
@@ -1060,9 +1135,10 @@ components:
         filename:
           type: string
       example:
-        filename: filename.jpg
-        contract_number: a2fiq
         file: 3Hs2dD2MnZ6xrj2bOiexk7PVPVcezZ0PYydnqnquPZs6L7GTs9Y9Zx7NnQ9nJ2eqeq4zZ0PZydvqnquL...
+        contract_number: a2fiq
+        content_type: Image/jpeg
+        filename: filename.jpg
     get_delete_file_body:
       title: Get/DeleteFileBody
       required:
@@ -1084,19 +1160,19 @@ components:
       required:
         - content_type
         - filename
-        - encoded_file
+        - file
       type: object
       properties:
         content_type:
           type: string
         filename:
           type: string
-        encoded_file:
+        file:
           type: string
       example:
         content_type: image/jpeg
         filename: filename.jpg
-        encoded_file: /9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAA0NDQ0ODQ4QEA4UFhMWFB4bGRkbHi0gIiAiIC1EKjIqKjIqRDAAAAAAH/9k=..
+        file: /9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAA0NDQ0ODQ4QEA4UFhMWFB4bGRkbHi0gIiAiIC1EKjIqKjIqRDAAAAAAH/9k=..
     get_file_6mb_response:
       title: GetFile6MbResponse
       required:
@@ -1111,19 +1187,12 @@ components:
       title: DismissFile
       required:
         - contract_number
-        - filename
       type: object
       properties:
         contract_number:
           type: string
-        filename:
-          type: string
-        version_id:
-          type: string
       example:
         contract_number: aflkh12
-        filename: filename
-        version_id: "20211203_173028"
     get_file_versions_body:
       title: GetFileVersionsBody
       required:
@@ -1150,21 +1219,21 @@ components:
             $ref: "#/components/schemas/file_versions"
       example:
         versions:
-          - version_id: KjeIhnMBnf6hXmgd8s9yWYE8Shhq8kJ4
+          - version_id: "20211110_100530"
             last_modified: 2021/11/04 17:10
             is_latest: true
             size: 17196327
-            storage_class: STANDARD
-          - version_id: DyJ8c85C8jKW6UFaEXjNAMBKheqnfzcp
+            archived: false
+          - version_id: "20211110_100430"
             last_modified: 2021/11/03 01:01
             is_latest: false
             size: 28588
-            storage_class: STANDARD
-          - version_id: .XXu36jSXfwx9wKaMsBi_vJmOWkafHFL
+            archived: false
+          - version_id: "20211010_100530"
             last_modified: 2021/11/03 01:00
             is_latest: false
             size: 319172
-            storage_class: STANDARD
+            archived: false
     file_versions:
       title: FileVersions
       required:
@@ -1172,7 +1241,7 @@ components:
         - last_modified
         - is_latest
         - size
-        - storage_class
+        - archived
       type: object
       properties:
         version_id:
@@ -1184,14 +1253,14 @@ components:
         size:
           type: integer
           format: int32
-        storage_class:
-          type: string
+        archived:
+          type: boolean
       example:
         version_id: KjeIhnMBnf6hXmgd8s9yWYE8Shhq8kJ4
         last_modified: 2021/11/04 17:10
         is_latest: true
         size: 17196327
-        storage_class: STANDARD
+        archived: false
     get_filenames_body:
       title: GetFilenamesBody
       required:
@@ -1218,17 +1287,17 @@ components:
             filename: filename1
             last_modified: 2021/11/04 17:10
             size: 17196327
-            storage_class: STANDARD
-          - contract_number: uafsp1
+            archived: true
+          - contract_number: sjfu1
             filename: filename2
             last_modified: 2021/11/03 01:01
             size: 28588
-            storage_class: STANDARD
-          - contract_number: lfj21
+            archived: true
+          - contract_number: sjfu1
             filename: filename3
             last_modified: 2021/11/03 01:00
             size: 319172
-            storage_class: STANDARD
+            archived: true
     filename_item:
       title: FilenameItem
       required:
@@ -1236,7 +1305,7 @@ components:
         - filename
         - last_modified
         - size
-        - storage_class
+        - archived
       properties:
         contract_number:
           type: string
@@ -1247,19 +1316,21 @@ components:
         size:
           type: integer
           format: int32
-        storage_class:
-          type: string
+        archived:
+          type: boolean
       example:
         contract_number: Kjeuhav2
         filename: filename
         last_modified: 2021/11/04 17:10
         size: 17196327
-        storage_class: STANDARD
+        archived: true
 security:
   - bearerAuth: []
 tags:
+  - name: API health
+    description: "Check the API health"
   - name: Files >6mb
-    description: "If the file is bigger than 6mb, you'll need to follow the next two steps:\n - Make a request to /files/_presigned_url endpoint\n - With the information of the previous response, make a post request"
+    description: "If the file is bigger than 6mb, you'll need to follow the next two steps:\n - Make a request to /files/_presigned_url endpoint\n - Make a post request to the url specified in the response."
   - name: Files <6mb
     description: Create and update files less than 6mb
   - name: Files
