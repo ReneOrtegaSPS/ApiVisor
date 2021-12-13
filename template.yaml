@@ -10,6 +10,12 @@ Parameters:
     Description: Name of Application
     Type: String
     Default: sam-visor-documentos
+  CogUserPool:
+    Description: Userpool ID
+    Type: String
+  CogClientId:
+    Description: Client Id
+    Type: String
 
 Resources:
   # API Gateway HTTP API
@@ -20,6 +26,20 @@ Resources:
       Description: API for the application "VisorDocumentos"
       ProtocolType: HTTP
 
+  # -------------------- AUTHORIZER --------------------
+  JWTAuthorizer:
+    Type: AWS::ApiGatewayV2::Authorizer
+    Properties:
+      Name: jwt-auth
+      ApiId: !Ref HttpApi
+      AuthorizerType: JWT
+      IdentitySource:
+        - "$request.header.Authorization"
+      JwtConfiguration:
+        Audience:
+          - !Ref CogClientId
+        Issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${CogUserPool}
+
   # -------------------- ROUTES --------------------
   # /files/_create
   CreateRoute:
@@ -27,6 +47,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: "POST /files/_create"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref JWTAuthorizer
       Target: !Join
         - /
         - - integrations
@@ -37,6 +59,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: "POST /files/_delete"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref JWTAuthorizer
       Target: !Join
         - /
         - - integrations
@@ -47,6 +71,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: "PATCH /files/_dismiss"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref JWTAuthorizer
       Target: !Join
         - /
         - - integrations
@@ -57,16 +83,30 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: "POST /files/_get"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref JWTAuthorizer
       Target: !Join
         - /
         - - integrations
           - !Ref GetIntegration
+  # /files/_health
+  HealthRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: "GET /health"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref HealthIntegration
   # /files/_list
   ListRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: "POST /files/_list"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref JWTAuthorizer
       Target: !Join
         - /
         - - integrations
@@ -77,6 +117,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: "POST /files/_list_versions"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref JWTAuthorizer
       Target: !Join
         - /
         - - integrations
@@ -87,6 +129,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: "POST /files/_presigned_url"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref JWTAuthorizer
       Target: !Join
         - /
         - - integrations
@@ -97,6 +141,8 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: "PUT /files/_update"
+      AuthorizationType: JWT
+      AuthorizerId: !Ref JWTAuthorizer
       Target: !Join
         - /
         - - integrations
@@ -139,6 +185,15 @@ Resources:
       IntegrationMethod: POST
       PayloadFormatVersion: "2.0"
       IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${GetFunction}/invocations
+  # Integrate health
+  HealthIntegration:
+    Type: "AWS::ApiGatewayV2::Integration"
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: POST
+      PayloadFormatVersion: "2.0"
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${HealthFunction}/invocations
   # Integrate _list
   ListIntegration:
     Type: "AWS::ApiGatewayV2::Integration"
@@ -250,6 +305,16 @@ Resources:
       Environment:
         Variables:
           BUCKET: !Ref S3Bucket
+  # Function health
+  HealthFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      CodeUri: functions/health/
+      Runtime: python3.8
+      MemorySize: 256
+      Timeout: 15
+      FunctionName: !Sub "${AppName}-health"
+      Handler: app.lambda_handler
   # Function _list
   ListFunction:
     Type: "AWS::Serverless::Function"
@@ -381,6 +446,14 @@ Resources:
       Action: "lambda:InvokeFunction"
       Principal: apigateway.amazonaws.com
       FunctionName: !Ref GetFunction
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
+  # Permission to health
+  HealthFunctionPermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref HealthFunction
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*/*"
   # Permission to _list
   ListFunctionResourcePermission:
@@ -554,5 +627,5 @@ Resources:
 
 Outputs:
   ApiEndpoint:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Description: "API Gateway endpoint URL"
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
