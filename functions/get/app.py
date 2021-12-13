@@ -73,14 +73,14 @@ def lambda_handler(event, context):
         json_file = json.loads(response['Body'].read().decode('utf-8'))
         filename = json_file['filename']
         content_type = json_file['content_type']
-        encoded_file = json_file['file']
+        file = json_file['file']
         
         return {
                 'statusCode': 200,
                 'body': json.dumps({
                     'content_type': content_type,
                     'filename': filename,
-                    'encoded_file': encoded_file
+                    'file': file
                 }),
                 'isBase64Encoded': False
             }

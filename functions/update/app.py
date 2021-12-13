@@ -44,7 +44,7 @@ def lambda_handler(event, context):
     
     if not cf.folder_exists_and_not_empty(root_folder_s3):
         return {
-            'statusCode': 400,
+            'statusCode': 404,
             'body': json.dumps({
                 'error': 'A filename does not exists in that contract_number'
             })

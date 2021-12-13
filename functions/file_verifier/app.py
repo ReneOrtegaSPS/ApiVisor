@@ -49,7 +49,7 @@ def lambda_handler(event, context):
         send_email_sns(error_message, contract_number, filename)
         return
     
-    missing_parameters = cf.missing_parameters_from_file_dict(json_file, ['content_type', 'filename', 'encoded_file'])
+    missing_parameters = cf.missing_parameters_from_file_dict(json_file, ['content_type', 'filename', 'file'])
     if missing_parameters:
         print(f'\'{", ".join(missing_parameters)}\' parameter(s) is/are missing.')
         error_message = f"""

@@ -10,7 +10,7 @@ logger.setLevel(logging.WARNING)
 
 
 def lambda_handler(event, context):
-    if 'body' not in event:
+    if 'body' not in event or event['body'] == '':
         return {
             'statusCode': 400,
             'body': json.dumps({
@@ -19,7 +19,7 @@ def lambda_handler(event, context):
         }
     
     
-    header_content_type = event['headers']['content-type']
+    header_content_type = event['headers'].get('content-type', '')
     if not(header_content_type == 'application/json' or  header_content_type.startswith('multipart/form-data')):
         return {
             'statusCode': 400,

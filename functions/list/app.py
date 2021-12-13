@@ -21,11 +21,13 @@ def get_current_file_info(folder: str) -> Dict:
     if 'Contents' in resp:
         files = resp['Contents']
         latest_file = max(files, key=lambda x: datetime.strptime(x['Key'].split('/')[-1].replace('.txt', ''), DATETIME_FORMAT))
-        
+        is_archived = False
+        if latest_file['StorageClass'] in ['GLACIER', 'GLACIER_IR']:
+            is_archived = True
         latest_file_formatted = {
             'filename': latest_file['Key'].split('/')[1],
             'size': latest_file['Size'],
-            'storage_class': latest_file['StorageClass']
+            'archived': is_archived
         }
         
         return latest_file_formatted
