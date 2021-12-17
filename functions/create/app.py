@@ -56,7 +56,7 @@ def lambda_handler(event, context):
         return {
             'statusCode': 400,
             'body': json.dumps({
-                'error': 'A filename already exists in that contract_number'
+                'error': 'A filename already exists in that contract_number.'
             })
         }
     

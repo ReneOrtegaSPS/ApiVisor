@@ -96,7 +96,7 @@ paths:
 
         ```json
 
-        { "filename": "filename.jpg", "content-type": "image/jpeg", "file": "iVBORw0KGgoAAAANSUhEUgAAD..."
+        { "filename": "filename.jpg", "content_type": "image/jpeg", "file": "iVBORw0KGgoAAAANSUhEUgAAD..."
 
         }
 
@@ -617,7 +617,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error_4xx"
               example:
-                error: Files has already been dismissed.
+                error: Files have already been dismissed.
         "404":
           description: Not Found
           headers:
@@ -1221,19 +1221,19 @@ components:
         versions:
           - version_id: "20211110_100530"
             last_modified: 2021/11/04 17:10
-            is_latest: true
+            is_latest: "True"
             size: 17196327
-            archived: false
+            archived: "False"
           - version_id: "20211110_100430"
             last_modified: 2021/11/03 01:01
-            is_latest: false
+            is_latest: "False"
             size: 28588
-            archived: false
+            archived: "False"
           - version_id: "20211010_100530"
             last_modified: 2021/11/03 01:00
-            is_latest: false
+            is_latest: "False"
             size: 319172
-            archived: false
+            archived: "False"
     file_versions:
       title: FileVersions
       required:
@@ -1258,9 +1258,9 @@ components:
       example:
         version_id: KjeIhnMBnf6hXmgd8s9yWYE8Shhq8kJ4
         last_modified: 2021/11/04 17:10
-        is_latest: true
+        is_latest: "True"
         size: 17196327
-        archived: false
+        archived: "False"
     get_filenames_body:
       title: GetFilenamesBody
       required:
@@ -1283,32 +1283,26 @@ components:
             $ref: "#/components/schemas/filename_item"
       example:
         filename_items:
-          - contract_number: sjfu1
-            filename: filename1
-            last_modified: 2021/11/04 17:10
+          - filename: filename1
+            last_modified: 2021/11/04 17:10:01
             size: 17196327
-            archived: true
-          - contract_number: sjfu1
-            filename: filename2
-            last_modified: 2021/11/03 01:01
+            archived: "True"
+          - filename: filename2
+            last_modified: 2021/11/03 01:01:10
             size: 28588
-            archived: true
-          - contract_number: sjfu1
-            filename: filename3
-            last_modified: 2021/11/03 01:00
+            archived: "True"
+          - filename: filename3
+            last_modified: 2021/11/03 01:00:25
             size: 319172
-            archived: true
+            archived: "False"
     filename_item:
       title: FilenameItem
       required:
-        - contract_number
         - filename
         - last_modified
         - size
         - archived
       properties:
-        contract_number:
-          type: string
         filename:
           type: string
         last_modified:
@@ -1319,11 +1313,10 @@ components:
         archived:
           type: boolean
       example:
-        contract_number: Kjeuhav2
         filename: filename
-        last_modified: 2021/11/04 17:10
+        last_modified: 2021/11/04 17:10:00
         size: 17196327
-        archived: true
+        archived: "True"
 security:
   - bearerAuth: []
 tags:

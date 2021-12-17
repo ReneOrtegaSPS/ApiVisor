@@ -17,16 +17,18 @@ def get_current_file_info(folder: str) -> Dict:
     """
     s3 = boto3.client('s3')
     resp = s3.list_objects_v2(Bucket=BUCKET, Prefix=folder, Delimiter='/')
-    print(folder, resp)
+    
     if 'Contents' in resp:
         files = resp['Contents']
         latest_file = max(files, key=lambda x: datetime.strptime(x['Key'].split('/')[-1].replace('.txt', ''), DATETIME_FORMAT))
         is_archived = False
+        print(latest_file)
         if latest_file['StorageClass'] in ['GLACIER', 'GLACIER_IR']:
             is_archived = True
         latest_file_formatted = {
             'filename': latest_file['Key'].split('/')[1],
             'size': latest_file['Size'],
+            'last_modified': latest_file['LastModified'].strftime('%Y/%m/%d %H:%M%S'),
             'archived': is_archived
         }
         

@@ -64,14 +64,18 @@ def get_file_dict_from_event(event: Dict) -> Dict:
     Get the dictionary inside the body of the request.
     The request body can either be a json or a multipart body.
     """
-    if event['isBase64Encoded']:
+    if event['isBase64Encoded'] == 'true':
         body = base64.b64decode(event['body'])
     else:
         body = event['body']
-        
-    try:
-        file_dict = json.loads(body)
-    except:
+    
+    if event['headers']['content-type'] == 'application/json':
+        try:
+            file_dict = json.loads(body)
+        except Exception as e:
+            print(e)
+            return {}
+    elif event['headers']['content-type'].startswith('multipart/form-data'):
         file_dict = get_file_dict_from_multipart_body(body, event['headers']['content-type'])
         
     return file_dict
@@ -92,11 +96,10 @@ def get_body_dict_from_event(event: Dict) -> Union[Dict, bool]:
     """
     Get the dictionary of the request body.
     """
-    if event['isBase64Encoded']:
+    if event['isBase64Encoded'] == 'true':
         body = base64.b64decode(event['body'])
     else:
         body = event['body']
-        
     try:
         body_dict = json.loads(body)
     except:
@@ -121,6 +124,7 @@ def folder_exists_and_not_empty(path:str) -> bool:
     s3 = boto3.client('s3')
     if not path.endswith('/'):
         path = path + '/' 
+    print(f"-------EL BUCKET ES:{BUCKET}")
     resp = s3.list_objects(Bucket=BUCKET, Prefix=path, Delimiter='/', MaxKeys=1)
     return 'Contents' in resp
 
@@ -141,12 +145,15 @@ def get_versions_of_file(contract_number: str, filename: str, max_index: bool=Fa
 
     for i, version in enumerate(response['Contents']):
         version_id = version['Key'].split('/')[-1].split('.')[0]
+        is_archived = False
+        if version['StorageClass'] in ['GLACIER', 'GLACIER_IR']:
+            is_archived = True
         version = {
             'version_id': version_id,
             'last_modified': version['LastModified'].strftime('%Y-%m-%d %H:%M:%S'),
-            'storage_class': version['StorageClass'],
+            'archived': is_archived,
             'size': version['Size'],
-            'is_latest': 'false'
+            'is_latest': False
         }
         dates.append([i, datetime.strptime(version_id, DATETIME_FORMAT)])
         versions.append(version)
@@ -154,7 +161,7 @@ def get_versions_of_file(contract_number: str, filename: str, max_index: bool=Fa
     # Obtener el index de la fecha máxima
     latest_index = max(dates, key=lambda x: x[1])[0]
     # Modificar el parametro del archivo con la versión más reciente
-    versions[latest_index]['is_latest'] = 'true'
+    versions[latest_index]['is_latest'] = True
     
     if max_index:
         return versions, latest_index

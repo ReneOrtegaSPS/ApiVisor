@@ -74,10 +74,12 @@ def lambda_handler(event, context):
                     'error': 'Contract number not found.'
                 })
             }
-    
+    are_files_on_glacier = []
     for file in response['Contents']:
         if file['StorageClass'] in ['GLACIER', 'GLACIER_IR']:
+            are_files_on_glacier.append(True)
             continue
+        are_files_on_glacier.append(False)
         metadata_response = cf.key_exists_in_bucket(file['Key'])
         try:
             update_object_to_glacier(file['Key'], metadata_response['VersionId'])
@@ -88,6 +90,11 @@ def lambda_handler(event, context):
                 'body': json.dumps({'error': 'Internal Server Error'})
             }
     
+    if all(are_files_on_glacier):
+        return {
+            'statusCode': 400,
+            'body': json.dumps({'error': 'Files have already been dismissed.'})
+        }    
         
     
     return {
